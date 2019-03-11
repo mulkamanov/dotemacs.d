@@ -1,0 +1,7 @@
+/auto-save-list
+/elpa
+/persp-confs
+.emacs.desktop
+emacs.:tangle
+emacs.el
+*.elc

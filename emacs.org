@@ -318,6 +318,17 @@ Auto-close delimiters and blocks as you type.
 #+BEGIN_SRC emacs-lisp
 (use-package smartparens
   :demand t
+  :bind (("C-M-f" . sp-forward-sexp)
+         ("C-M-b" . sp-backward-sexp)
+         ("C-M-d" . sp-down-sexp)
+         ("C-M-u" . sp-backward-up-sexp)
+         ("C-M-a" . sp-beginning-of-sexp)
+         ("C-M-e" . sp-end-of-sexp)
+         ("C-M-n" . sp-next-sexp)
+         ("C-M-p" . sp-previous-sexp)
+         ("C-M-k" . sp-kill-sexp)
+         ("C-M-w" . sp-copy-sexp)
+         ("C-M-[" . sp-backward-unwrap-sexp))
   :config
   (require 'smartparens-config)
 
@@ -352,6 +363,7 @@ Easily distinguish the delimiter pairs using colors especially in lisp modes.
 
 #+BEGIN_SRC emacs-lisp
 (use-package neotree
+  :bind ("C-c C-n" . neotree-project-dir)
   :commands (neotree-show
              neotree-hide
              neotree-toggle
@@ -391,9 +403,7 @@ Easily distinguish the delimiter pairs using colors especially in lisp modes.
           (progn
             (neotree-dir project-dir)
             (neotree-find file-name)))
-        (message "Could not find git project root."))))
-
-  (global-set-key (kbd "<f8>") 'neotree-project-dir))
+        (message "Could not find git project root.")))))
 
 (setq doom-neotree-file-icons t)
 #+END_SRC
@@ -906,6 +916,15 @@ Indent settings.
                   (indent-region (region-beginning) (region-end) nil))))))
 #+END_SRC
 
+Jump to code
+
+#+BEGIN_SRC emacs-lisp
+(use-package dumb-jump
+  :commands (dumb-jump-go dumb-jump-back)
+  :bind (("C-M-." . dumb-jump-go)
+         ("C-M-," . dumb-jump-back)))
+#+END_SRC
+
 *** Clojure
 
 #+BEGIN_SRC emacs-lisp
@@ -915,7 +934,14 @@ Indent settings.
 
 (use-package cider
   :commands (cider-jack-in cider-mode)
-  :bind ("<f9>" . cider-jack-in)
+  :bind (("C-c C-j" . cider-jack-in)
+         ("C-c C-q" . cider-quit)
+         ("C-c M-c" . cider-connect)
+         ("C-x C-e" . cider-eval-last-expr)
+         ("C-x C-f" . cider-eval-defun-at-point)
+         ("C-x M-s" . cider-switch-to-repl-buffer)
+         ("C-x M-b" . cider-send-ns-to-repl)
+         ("M-." . cider-find-var))
   :config
   (setq nrepl-hide-special-buffers t
         cider-repl-use-pretty-printing t   ; nice pretty printing
@@ -929,8 +955,8 @@ Indent settings.
   ;; Hooks
   (add-hook 'cider-mode-hook #'eldoc-mode)        ; eldoc for clojure
   (add-hook 'clojure-mode-hook #'subword-mode)    ; CamelCase support
-  (add-hook 'cider-repl-mode-hook #'company-mode) ; company mode for completion
-  (add-hook 'cider-mode-hook #'company-mode)
+  ; (add-hook 'cider-repl-mode-hook #'company-mode) ; company mode for completion
+  ; (add-hook 'cider-mode-hook #'company-mode)
   (add-hook 'cider-repl-mode-hook 'turn-on-smartparens-strict-mode) ; smartparens
   (add-hook 'cider-mode-hook 'turn-on-smartparens-strict-mode)
   (add-hook 'clojure-mode-hook 'turn-on-smartparens-strict-mode))

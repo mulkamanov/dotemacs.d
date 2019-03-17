@@ -1,7 +1,9 @@
 /auto-save-list
 /elpa
 /persp-confs
+/eshell
 .emacs.desktop
 emacs.:tangle
 emacs.el
 *.elc
+smex-items

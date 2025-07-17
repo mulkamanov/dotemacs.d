@@ -1,8 +1,9 @@
 Emacs Literate Configuration
 ======================
 
-This is a emacs config based on https://github.com/gilbertw1/emacs-literate-starter.
-
+This is a emacs config based on:
+https://github.com/gilbertw1/emacs-literate-starter
+https://github.com/a13/emacs.d
 
 ### Usage
 

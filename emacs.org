@@ -6,46 +6,42 @@
 :VISIBILITY: children
 :END:
 
-** Table of Contents :TOC_3_gh:
+** Table of Contents                                               :TOC_2_gh:
 - [[#configuration][Configuration]]
   - [[#about-this-file][About this file]]
   - [[#org-file-tweaks][Org File Tweaks]]
-    - [[#automatically-tangle][Automatically Tangle]]
-    - [[#visibility-settings][Visibility Settings]]
-    - [[#table-of-contents][Table of Contents]]
-  - [[#personal-information][Personal Information]]
-  - [[#emacs-initialization][Emacs Initialization]]
-    - [[#settings][Settings]]
-    - [[#package-management][Package Management]]
-  - [[#packages][Packages]]
-    - [[#evil][Evil]]
-    - [[#which-key][which-key]]
-    - [[#ivy][Ivy]]
-    - [[#counsel][Counsel]]
-    - [[#swiper][Swiper]]
-    - [[#smex][Smex]]
-    - [[#smartparens][smartparens]]
-    - [[#rainbow-delimiters][rainbow-delimiters]]
-    - [[#column-enforce-mode][column-enforce-mode]]
-    - [[#neotree][NeoTree]]
-    - [[#magit][Magit]]
-    - [[#projectile][Projectile]]
-    - [[#persp-mode][persp-mode]]
-    - [[#org][Org]]
-    - [[#toc-org][Toc-org]]
-  - [[#core-settings][Core Settings]]
-    - [[#charset][Charset]]
-    - [[#font][Font]]
-    - [[#ui][UI]]
-    - [[#editor][Editor]]
-  - [[#ide][IDE]]
-    - [[#prog-mode][prog-mode]]
-    - [[#clojure][Clojure]]
-    - [[#python][Python]]
-  - [[#post-initialization][Post Initialization]]
+- [[#emacs-initialization][Emacs Initialization]]
+  - [[#settings][Settings]]
+  - [[#package-management][Package Management]]
+- [[#core-settings][Core settings]]
+  - [[#org][Org]]
+  - [[#toc-org][Toc-org]]
+  - [[#garbage-collector-magic-hack][Garbage Collector Magic Hack]]
+  - [[#try][Try]]
+  - [[#minibuffer][Minibuffer]]
+  - [[#charset][Charset]]
+  - [[#font][Font]]
+  - [[#ui][UI]]
+  - [[#editor][Editor]]
+- [[#ide][IDE]]
+  - [[#delimiter-pairs][Delimiter pairs]]
+  - [[#rule-80-columns][Rule 80-columns]]
+  - [[#treemacs][Treemacs]]
+  - [[#git][Git]]
+  - [[#projectile][Projectile]]
+  - [[#persp-mode][persp-mode]]
+  - [[#prog-mode][prog-mode]]
+  - [[#lsp-and-dap][LSP and DAP]]
+  - [[#java][JAVA]]
+  - [[#clojure][Clojure]]
+  - [[#erlang][Erlang]]
+  - [[#data-serialization][Data serialization]]
+  - [[#markup][Markup]]
+  - [[#testing-an-api][Testing an API]]
+- [[#post-initialization][Post Initialization]]
 
 ** About this file
-This is an Emacs literate configuration template. It contains the literate config along with some optimizations to ensure a fast load time.
+This is an Emacs literate config with some optimizations to ensure a fast load time.
 
 ** Org File Tweaks
 There are a few tweaks included in this org file that make it a little easier to work with.
@@ -53,9 +49,9 @@ There are a few tweaks included in this org file that make it a little easier to
 *** Automatically Tangle
 First there is a property defined on the file:
 
-#+BEGIN_SRC :tangle no
+#+begin_src :tangle no
 header-args :tangle yes
-#+END_SRC
+#+end_src
 
 This tells emacs to automatically tangle (include) all code blocks in this file when
 generating the code for the config, unless the code block explicitly includes
@@ -66,49 +62,42 @@ Next we have a property defined on the [[Configuration][Configuration]] heading 
 that tells org to show it's direct children on startup. This way a clean outline of all
 sub headings under Configuration is shown each time this file is opened in org-mode.
 
-*** Table of Contents
-Finally, there is a [[Table of Contents][Table of Contents]] heading that includes the tag: =:TOC_3_gh:=. This
-tells an org-mode package =toc-org= to generate a table of contents under this heading
-that has a max depth of 3 and is created using Github-style hrefs. This table of contents
-is updated everytime the file is saved and makes for a functional table of contents that
-works property directly on github.
+*** Lexical Binding
+In modern version of emacs we need this in first line of emacs.el
 
-** Personal Information
+#+begin_src emacs-lisp
+  ;;; -*- lexical-binding: t -*-
+#+end_src
 
-#+BEGIN_SRC emacs-lisp
-(setq user-full-name "Gleb Mulkamanov"
-      user-mail-address "")
-#+END_SRC
+* Emacs Initialization
 
-** Emacs Initialization
-
-*** Settings
+** Settings
 We're going to increase the gc-cons-threshold to a very high number to decrease the load and compile time.
 We'll lower this value significantly after initialization has completed. We don't want to keep this value
 too high or it will result in long GC pauses during normal usage.
 
-#+BEGIN_SRC emacs-lisp
-(eval-and-compile
-  (setq gc-cons-threshold 402653184
-        gc-cons-percentage 0.6))
-#+END_SRC
+#+begin_src emacs-lisp
+  (eval-and-compile
+    (setq gc-cons-threshold 402653184
+          gc-cons-percentage 0.6))
+#+end_src
 
 Disable certain byte compiler warnings to cut down on the noise.
 
-#+BEGIN_SRC emacs-lisp
-(setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
-#+END_SRC
+#+begin_src emacs-lisp
+  (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+#+end_src
 
-*** Package Management
+** Package Management
 
-**** Package Settings
+*** Package Settings
 We're going to set the =load-path= ourselves and avoid calling =(package-initilize)= (for
 performance reasons) so we need to set =package--init-file-ensured= to true to tell =package.el=
 to not automatically call it on our behalf. Additionally we're setting
 =package-enable-at-startup= to nil so that packages will not automatically be loaded for us since
 =use-package= will be handling that.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (eval-and-compile
     (setq load-prefer-newer t
           package-user-dir "~/.emacs.d/elpa"
@@ -117,30 +106,30 @@ to not automatically call it on our behalf. Additionally we're setting
 
     (unless (file-directory-p package-user-dir)
       (make-directory package-user-dir t)))
-#+END_SRC
+#+end_src
 
-**** Use-Package Settings
+*** Use-Package Settings
 Tell =use-package= to always defer loading packages unless explicitly told otherwise. This speeds up
 initialization significantly as many packages are only loaded later when they are explicitly used.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq use-package-always-defer t
         use-package-verbose t)
-#+END_SRC
+#+end_src
 
-**** Manually Set Load Path
+*** Manually Set Load Path
 We're going to set the load path ourselves so that we don't have to call =package-initialize= at
 runtime and incur a large performance hit. This load-path will actually be faster than the one
 created by =package-initialize= because it appends the elpa packages to the end of the load path.
 Otherwise any time a builtin package was required it would have to search all of third party paths
 first.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (eval-and-compile
     (setq load-path (append load-path (directory-files package-user-dir t "^[^.]" t))))
-#+END_SRC
+#+end_src
 
-**** Initialize Package Management
+*** Initialize Package Management
 Next we are going to require =package.el= and add our additional package archives, 'melpa' and 'org'.
 Afterwards we need to initialize our packages and then ensure that =use-package= is installed, which
 we promptly install if it's missing. Finally we load =use-package= and tell it to always install any
@@ -154,7 +143,7 @@ in the macro being fully expanded at which point =use-package= isn't actually re
 Since the code is automatically compiled during runtime, if the configuration hasn't already been
 previously compiled manually then all of the package initialization will still take place at startup.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (eval-when-compile
     (require 'package)
 
@@ -169,808 +158,1010 @@ previously compiled manually then all of the package initialization will still t
       (package-install 'use-package))
     (require 'use-package)
     (setq use-package-always-ensure t))
-#+END_SRC
+#+end_src
 
-** Packages
-In uncompiled code, using the =use-package= macro will autoload =use-package= which also loads =bind-key=. But in precompiled code, the expansion of the macro doesn't need to load =use-package=, so it never gets loaded.
+* Core settings
+In uncompiled code, using the =use-package= macro will autoload =use-package= which also loads =bind-key=.
+But in precompiled code, the expansion of the macro doesn't need to load =use-package=, so it never gets loaded.
 
-#+BEGIN_SRC emacs-lisp
-(require 'bind-key)
-#+END_SRC
+#+begin_src emacs-lisp
+  (require 'bind-key)
+#+end_src
 
-*** Evil
-Install, automatically load, and enable evil. It's like vim, but better! (Temporary disable)
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package evil
-  :demand t
-  :config
-  (evil-mode 1))
-#+END_SRC
-
-*** which-key
-
-Dynamically show keybinding options.
-
-#+BEGIN_SRC emacs-lisp
-(use-package which-key
-  :demand t
-  :config
-  (setq which-key-sort-order #'which-key-prefix-then-key-order
-        which-key-sort-uppercase-first nil
-        which-key-add-column-padding 1
-        which-key-max-display-columns nil
-        which-key-min-display-lines 5)
-  ;; embolden local bindings
-  (set-face-attribute 'which-key-local-map-description-face nil :weight 'bold)
-  (which-key-setup-side-window-bottom)
-  (which-key-mode))
-#+END_SRC
-
-*** Ivy
-Generic completion frontend that's just awesome! Let's install and enable it.
-
-#+BEGIN_SRC emacs-lisp
-(use-package ivy
-  :bind (("C-c C-r" . ivy-resume)
-         ("<f6>" . ivy-resume))
-  :config
-  (setq ivy-height 15                                  ; slightly longer ivy completions list
-        ivy-wrap t                                     ; wrap around at end of completions list
-        ivy-fixed-height-minibuffer t                  ; use consistent height for ivy
-        projectile-completion-system 'ivy              ; use ivy for projectile
-        smex-completion-method 'ivy                    ; use ivy for smex
-        ivy-initial-inputs-alist nil                   ; don't use ^ as initial input
-        ivy-format-function #'ivy-format-function-line ; highlight til EOL
-        ivy-use-virtual-buffers nil                    ; dont' show recent files in switch-buffer
-        ivy-virtual-abbreviate 'full                   ; show full path if showing virtual buffer
-        ivy-magic-slash-non-match-action nil           ; disable magic slash on non-match
-        ivy-on-del-error-function nil                  ; don't quit minibuffer on delete-error
-        ivy-use-selectable-prompt t)                   ; allow input prompt value to be selectable
-
-  (ivy-mode 1))
-#+END_SRC
-
-*** Counsel
-Counsel allows us to utilize ivy by replacing many built-in and common functions
-with richer versions.
-
-#+BEGIN_SRC emacs-lisp
-(defun +ivy-projectile-find-file-transformer (str)
-  "Highlight entries that have been visited. This is the opposite
-  of `counsel-projectile-find-file'."
-  (cond ((get-file-buffer (projectile-expand-root str))
-         (propertize str 'face '(:weight ultra-bold :slant italic)))
-        (t str)))
-
-(use-package counsel-projectile
-  :commands (counsel-projectile-find-file counsel-projectile-find-dir
-             counsel-projectile-switch-to-buffer counsel-projectile-grep
-             counsel-projectile-ag counsel-projectile-switch-project)
-  :after counsel
-  :bind (([remap projectile-find-file] . counsel-projectile-find-file)
-         ([remap projectile-find-dir] . counsel-projectile-find-dir)
-         ([remap projectile-switch-to-buffer] . counsel-projectile-switch-to-buffer)
-         ([remap projectile-grep] . counsel-projectile-grep)
-         ([remap projectile-ag] . counsel-projectile-ag)
-         ([remap projectile-switch-project] . counsel-projectile-switch-project))
-  :config
-  (ivy-set-display-transformer #'counsel-projectile-find-file #'+ivy-projectile-find-file-transformer))
-
-(defun +ivy-recentf-transformer (str)
-  "Dim recentf entries that are not in the current project of the buffer you
-  started `counsel-recentf' from. Also uses `abbreviate-file-name'."
-  (let ((str (abbreviate-file-name str)))
-    (if (file-in-directory-p str (bmacs-project-root))
-        str
-      (propertize str 'face 'ivy-virtual))))
-
-(use-package counsel
-  :demand t
-  :bind (([remap apropos] . counsel-apropos)
-         ([remap bookmark-jump] . counsel-bookmark)
-         ([remap describe-face] . counsel-describe-face)
-         ([remap describe-function] . counsel-describe-function)
-         ([remap describe-variable] . counsel-describe-variable)
-         ([remap execute-extended-command] . counsel-M-x)
-         ([remap find-file] . counsel-find-file)
-         ([remap find-library] . counsel-find-library)
-         ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
-         ([remap imenu] . counsel-imenu)
-         ([remap recentf-open-files] . counsel-recentf)
-         ([remap org-capture] . counsel-org-capture)
-         ([remap swiper] . counsel-grep-or-swiper))
-  :config
-  (setq counsel-find-file-ignore-regexp "\\(?:^[#.]\\)\\|\\(?:[#~]$\\)\\|\\(?:^Icon?\\)"
-        ;; Add smart-casing and compressed archive searching (-zS) to default
-        ;; command arguments:
-        counsel-rg-base-command "rg -zS --no-heading --line-number --color never %s ."
-        counsel-ag-base-command "ag -zS --nocolor --nogroup %s"
-        counsel-pt-base-command "pt -zS --nocolor --nogroup -e %s")
-
-  (ivy-set-display-transformer #'counsel-recentf #'+ivy-recentf-transformer))
-#+END_SRC
-
-*** Swiper
-Swiper is an awesome searching utility with a quick preview.
-
-#+BEGIN_SRC emacs-lisp
-(use-package swiper
-  :commands (swiper swiper-all)
-  :bind ("C-s" . swiper))
-#+END_SRC
-
-*** Smex
-
-Improved M-x
-
-#+BEGIN_SRC emacs-lisp
-(use-package smex
-  :commands (smex smex-major-mode-commands)
-  :config
-  (smex-initialize)
-  :bind ("M-X" . smex-major-mode-commands))
-#+END_SRC
-
-*** Smartparens
-Auto-close delimiters and blocks as you type.
-
-#+BEGIN_SRC emacs-lisp
-(use-package smartparens
-  :demand t
-  :bind (("C-M-f" . sp-forward-sexp)
-         ("C-M-b" . sp-backward-sexp)
-         ("C-M-d" . sp-down-sexp)
-         ("C-M-u" . sp-backward-up-sexp)
-         ("C-M-a" . sp-beginning-of-sexp)
-         ("C-M-e" . sp-end-of-sexp)
-         ("C-M-n" . sp-next-sexp)
-         ("C-M-p" . sp-previous-sexp)
-         ("C-M-k" . sp-kill-sexp)
-         ("C-M-w" . sp-copy-sexp)
-         ("C-M-[" . sp-backward-unwrap-sexp))
-  :config
-  (require 'smartparens-config)
-
-  (sp-local-pair '(xml-mode nxml-mode php-mode) "<!--" "-->"
-                 :post-handlers '(("| " "SPC")))
-
-  (sp-local-pair '(clojure-mode lisp-mode) "'" nil
-                 :actions nil)
-
-  ;; disable global pairing for `
-  (sp-pair "`" nil :actions :rem))
-#+END_SRC
-
-*** rainbow-delimiters
-Easily distinguish the delimiter pairs using colors especially in lisp modes.
-
-#+BEGIN_SRC emacs-lisp
-(use-package rainbow-delimiters
-  :commands rainbow-delimiters-mode
-  :config (setq rainbow-delimiters-max-face-count 3))
-#+END_SRC
-
-*** column-enforce-mode
-
-#+BEGIN_SRC emacs-lisp
-(use-package column-enforce-mode
-  :commands column-enforce-mode
-  :config (setq column-enforce-comments nil))
-#+END_SRC
-
-*** NeoTree
-
-#+BEGIN_SRC emacs-lisp
-(use-package neotree
-  :bind ("C-c C-n" . neotree-project-dir)
-  :commands (neotree-show
-             neotree-hide
-             neotree-toggle
-             neotree-dir
-             neotree-find
-             neo-global--with-buffer
-             neo-global--window-exists-p)
-  :config
-  (setq neo-smart-open t
-        neo-create-file-auto-open t
-        neo-window-width 32
-        neo-theme 'arrow
-        neo-confirm-create-file #'off-p
-        neo-confirm-create-directory #'off-p
-        neo-show-hidden-files nil
-        projectile-switch-project-action 'neotree-projectile-action
-        neo-hidden-regexp-list
-        '(;; vcs folders
-          "^\\.\\(git\\|hg\\|svn\\)$"
-          ;; compiled files
-          "\\.\\(pyc\\|o\\|elc\\|lock\\|css.map\\)$"
-          ;; generated files, caches or local pkgs
-          "^\\(node_modules\\|vendor\\|.\\(project\\|cask\\|yardoc\\|sass-cache\\)\\)$"
-          ;; org-mode folders
-          "^\\.\\(sync\\|export\\|attach\\)$"
-          "~$"
-          "^#.*#$"))
-
-  (defun neotree-project-dir ()
-    "Open NeoTree using the git root."
-    (interactive)
-    (let ((project-dir (projectile-project-root))
-          (file-name (buffer-file-name)))
-      (neotree-toggle)
-      (if project-dir
-        (if (neo-global--window-exists-p)
-          (progn
-            (neotree-dir project-dir)
-            (neotree-find file-name)))
-        (message "Could not find git project root.")))))
-
-(setq doom-neotree-file-icons t)
-#+END_SRC
-
-*** Magit
-The magical git client. Let's load magit only when one of the several entry pont
-functions we invoke regularly outside of magit is called.
-
-#+BEGIN_SRC emacs-lisp
-(use-package magit
-  :commands (magit-status magit-blame magit-log-buffer-file magit-log-all))
-#+END_SRC
-
-*** Projectile
-Projectile is a quick and easy project management package.
-
-#+BEGIN_SRC emacs-lisp
-(use-package projectile
-  :demand t
-  :init
-  (setq projectile-indexing-method 'alien
-        projectile-globally-ignored-files '(".DS_Store" "Icon
-" "TAGS")
-        projectile-globally-ignored-file-suffixes '(".elc" ".pyc" ".o" ".class"))
-  :config
-  (setq grep-find-ignored-directories '("target" ".ensime_cache" ".fingerprint")
-        projectile-show-paths-function 'projectile-hashify-with-relative-paths)
-
-  (nconc projectile-globally-ignored-directories '("target" ".ensime_cache" ".fingerprint" "project/target" "node_modules"))
-
-  (nconc projectile-other-file-alist '(("css"  . ("scss" "sass" "less" "style"))
-                                       ("scss" . ("css"))
-                                       ("sass" . ("css"))
-                                       ("less" . ("css"))
-                                       ("styl" . ("css"))))
-  )
-#+END_SRC
-
-*** persp-mode
-Allows for creation of isolated workspaces
-
-#+BEGIN_SRC emacs-lisp
-(defvar +workspaces-last-persp nil
-  "A variable that contains the last accessed perspective")
-
-(defun +workspace-exists-p (name)
-  "Returns t if NAME is the name of an existing workspace."
-  (when (symbolp name)
-    (setq name (symbol-name name)))
-  (unless (stringp name)
-    (error "Expected a string, got a %s" (type-of name)))
-  (member name (persp-names-current-frame-fast-ordered)))
-
-(defun +workspace-switch-last ()
-  "Switches to the last workspace"
-  (interactive)
-  (if (+workspace-exists-p +workspaces-last-persp)
-      (persp-switch +workspaces-last-persp)
-    (error "No previous workspace.")))
-
-(defun +workspace-switch-project ()
-  (interactive)
-  (ivy-read "Switch to Project Perspective: "
-            (if (projectile-project-p)
-                (cons (abbreviate-file-name (projectile-project-root))
-                      (projectile-relevant-known-projects))
-              projectile-known-projects)
-            :action (lambda (project)
-                      (persp-switch project)
-                      (let ((projectile-completion-system 'ivy))
-                        (projectile-switch-project-by-name project)))))
-
-(use-package persp-mode :demand t
-  :config
-  (setq wg-morph-on nil
-        persp-autokill-buffer-on-remove 'kill-weak
-        persp-nil-name "nil"
-        persp-nil-hidden t
-        persp-auto-save-fname "autosave"
-        persp-auto-resume-time 1
-        persp-auto-save-opt 1)
-
-  (defun +workspaces*track-last-persp (switch-fun &rest args)
-    (let ((before-persp (safe-persp-name (get-current-persp)))
-          (after-persp (apply switch-fun args)))
-      (when (not (string= before-persp after-persp))
-        (setq +workspaces-last-persp before-persp))))
-
-  (advice-add #'persp-switch :around #'+workspaces*track-last-persp)
-
-  (persp-mode 1))
-#+END_SRC
-
-*** Org
+** Org
 Let's include a newer version of org-mode than the one that is built in. We're going
 to manually remove the org directories from the load path, to ensure the version we
 want is prioritized instead.
 
-#+BEGIN_SRC emacs-lisp
-(use-package org
-  :ensure org-plus-contrib
-  :pin org
-  :defer t)
+#+begin_src emacs-lisp
+  (use-package org
+    ;:straight t
+    :mode (("\\.org$" . org-mode))
+    :config
+    (setq org-support-shift-select t)
+    :init
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((shell . t))))
 
-;; Ensure ELPA org is prioritized above built-in org.
-(setq load-path (cl-remove-if (lambda (x) (string-match-p "org$" x)) load-path))
-#+END_SRC
+  ;; Ensure ELPA org is prioritized above built-in org.
+  ;(require 'cl)
+  ;(setq load-path (cl-remove-if (lambda (x) (string-match-p "org$" x)) load-path))
+#+end_src
 
-*** Toc-org
+** Toc-org
 Let's install and load the =toc-org= package after org mode is loaded. This is the
 package that automatically generates an up to date table of contents for us.
 
-#+BEGIN_SRC emacs-lisp
-(use-package toc-org
-  :after org
-  :init (add-hook 'org-mode-hook #'toc-org-enable))
-#+END_SRC
+#+begin_src emacs-lisp
+  (use-package toc-org
+    :after org
+    :init (add-hook 'org-mode-hook #'toc-org-enable))
+#+end_src
 
-** Core Settings
+** Garbage Collector Magic Hack
+Enforce a sneaky Garbage Collection strategy to minimize GC interference with user activity.
 
-*** Charset
+#+begin_src emacs-lisp
+  (use-package gcmh
+      :demand t
+      :config
+      (gcmh-mode 1))
+#+end_src
+
+** Try
+Try packages without installing.
+
+#+begin_src emacs-lisp
+  (use-package try :defer t)
+#+end_src
+
+To try out a package we can run
+=M-x try RET some-package=
+Or if we want to try out some package from the web
+=M-x try RET https://url.com/to/some/file.el=
+
+** Minibuffer
+An alternative interface for M-x with prioritizing most-used commands in the completion list.
+
+#+begin_src emacs-lisp
+  (use-package amx)
+#+end_src
+
+Ivy is generic completion frontend that's just awesome! It is lightweight without
+sacrificing functionality, and allows you to maintain the minimalist design of emacs.
+
+#+begin_src emacs-lisp
+  (use-package ivy
+    :custom
+    (ivy-height 15)                                  ; slightly longer ivy completions list
+    (ivy-wrap t)                                     ; wrap around at end of completions list
+    (ivy-fixed-height-minibuffer t)                  ; use consistent height for ivy
+    (projectile-completion-system 'ivy)              ; use ivy for projectile
+    (ivy-initial-inputs-alist nil)                   ; don't use ^ as initial input
+    (ivy-format-function #'ivy-format-function-line) ; highlight til EOL
+    (ivy-use-virtual-buffers nil)                    ; dont' show recent files in switch-buffer
+    (ivy-virtual-abbreviate 'full)                   ; show full path if showing virtual buffer
+    (ivy-magic-slash-non-match-action nil)           ; disable magic slash on non-match
+    (ivy-on-del-error-function nil)                  ; don't quit minibuffer on delete-error
+    (ivy-use-selectable-prompt t)                    ; allow input prompt value to be selectable
+    :bind
+    ("C-x C-r" . ivy-resume)
+    :config
+    (ivy-mode 1)
+    (define-key read-expression-map (kbd "C-r") 'counsel-expression-history))
+#+end_src
+
+Counsel allows us to utilize ivy by replacing many built-in and common functions
+with richer versions.
+
+#+begin_src emacs-lisp
+  (defun +ivy-recentf-transformer (str)
+    "Dim recentf entries that are not in the current project of the buffer you
+    started `counsel-recentf' from. Also uses `abbreviate-file-name'."
+    (let ((str (abbreviate-file-name str)))
+      (if (file-in-directory-p str (bmacs-project-root))
+          str
+        (propertize str 'face 'ivy-virtual))))
+
+  (use-package counsel
+    :demand t
+    :bind
+    (([remap apropos] . counsel-apropos)
+     ([remap bookmark-jump] . counsel-bookmark)
+     ([remap describe-face] . counsel-describe-face)
+     ([remap describe-function] . counsel-describe-function)
+     ([remap describe-variable] . counsel-describe-variable)
+     ([remap execute-extended-command] . counsel-M-x)
+     ([remap find-file] . counsel-find-file)
+     ([remap find-library] . counsel-find-library)
+     ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
+     ([remap imenu] . counsel-imenu)
+     ([remap recentf-open-files] . counsel-recentf)
+     ([remap org-capture] . counsel-org-capture)
+     ([remap swiper] . counsel-grep-or-swiper))
+    :config
+    (setq counsel-find-file-ignore-regexp "\\(?:^[#.]\\)\\|\\(?:[#~]$\\)\\|\\(?:^Icon?\\)"
+          ;; Add smart-casing and compressed archive searching (-zS) to default
+          ;; command arguments:
+          counsel-rg-base-command "rg -zS --no-heading --line-number --color never %s ."
+          counsel-ag-base-command "ag -zS --nocolor --nogroup %s"
+          counsel-pt-base-command "pt -zS --nocolor --nogroup -e %s")
+
+    (ivy-configure #'counsel-recentf
+      :display-transformer-fn #'+ivy-recentf-transformer)
+    (counsel-mode))
+#+end_src
+
+Swiper is an awesome searching utility with a quick preview.
+
+#+begin_src emacs-lisp
+  (use-package swiper
+    :commands (swiper swiper-all)
+    :bind ("C-s" . swiper))
+#+end_src
+
+** Charset
 Set UTF-8 as the default charset.
 
-#+BEGIN_SRC emacs-lisp
-(when (fboundp 'set-charset-priority)
-  (set-charset-priority 'unicode))
-(set-language-environment 'UTF-8)
-(setq-default buffer-file-coding-system 'utf-8)
-(setq-default coding-system-for-read 'utf-8)
-(prefer-coding-system 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
-(set-selection-coding-system 'utf-8)
-(setq locale-coding-system 'utf-8
-      file-name-coding-system 'utf-8)
-#+END_SRC
+#+begin_src emacs-lisp
+  (when (fboundp 'set-charset-priority)
+    (set-charset-priority 'unicode))
+  (set-language-environment 'UTF-8)
+  (setq-default buffer-file-coding-system 'utf-8)
+  (setq-default coding-system-for-read 'utf-8)
+  (prefer-coding-system 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (setq locale-coding-system 'utf-8
+        file-name-coding-system 'utf-8)
+#+end_src
 
-*** Font
+** Font
+It would be possible to specify alternative fonts in case the main one is unavailable.
+But it is better to know about the problem right away.
 
-#+BEGIN_SRC emacs-lisp
-(when (member "DejaVu Sans Mono" (font-family-list))
-  (set-face-attribute 'default nil :font "DejaVu Sans Mono" :height 140))
-#+END_SRC
+#+begin_src emacs-lisp
+  (when (member "DejaVu Sans Mono" (font-family-list))
+    (set-face-attribute 'default nil :font "DejaVu Sans Mono" :height 140))
+#+end_src
 
-*** UI
-Install, and enable monokai. It's better theme!
+** UI
+Install, and enable monokai. Nice color scheme for focused work.
 
-#+BEGIN_SRC emacs-lisp
-(use-package monokai-theme
-  :demand t)
-#+END_SRC
+#+begin_src emacs-lisp
+  (use-package monokai-pro-theme
+    :demand t
+    :config
+    (load-theme 'monokai-pro t))
+#+end_src
 
 Maximize frame on start-up
 
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-#+END_SRC
+#+begin_src emacs-lisp
+  (add-to-list 'default-frame-alist '(fullscreen . maximized))
+#+end_src
 
 Display the name of the current buffer in the title bar.
 
-#+BEGIN_SRC emacs-lisp
-(setq frame-title-format "GNU Emacs: %b")
-#+END_SRC
+#+begin_src emacs-lisp
+  (setq frame-title-format "GNU Emacs: %b")
+#+end_src
 
 Disable GUI components.
 
-#+BEGIN_SRC emacs-lisp
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(setq use-dialog-box nil
-      ring-bell-function 'ignore)
-#+END_SRC
+#+begin_src emacs-lisp
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+  (setq use-dialog-box nil
+        ring-bell-function 'ignore)
+#+end_src
 
 Inhibit startup/splash screen.
 
-#+BEGIN_SRC emacs-lisp
-(setq inhibit-splash-screen t
-      ingibit-startup-message t)
-#+END_SRC
+#+begin_src emacs-lisp
+  (setq inhibit-splash-screen t
+        ingibit-startup-message t)
+#+end_src
+
+Kill scratch buffer on startup.
+
+#+begin_src emacs-lisp
+  (kill-buffer "*scratch*")
+#+end_src
 
 Disable auto saves and backups.
 
-#+BEGIN_SRC emacs-lisp
-(setq make-backup-files nil
-      auto-save-list-file-name nil
-      auto-save-default nil)
-#+END_SRC
+#+begin_src emacs-lisp
+  (setq make-backup-files nil
+        auto-save-list-file-name nil
+        auto-save-default nil)
+#+end_src
 
 Scrolling settings.
 
-#+BEGIN_SRC emacs-lisp
-(setq scroll-step 1
-      scroll-margin 10
-      scroll-conservatively 10000
-      auto-window-vscroll nil)
-#+END_SRC
+#+begin_src emacs-lisp
+  (setq scroll-step 1
+        scroll-margin 10
+        scroll-conservatively 10000
+        auto-window-vscroll nil)
+#+end_src
 
 Display file size/time in mode-line
 
-#+BEGIN_SRC emacs-lisp
-(setq display-time-24hr-format t)
-(display-time-mode t)
-(size-indication-mode t)
-#+END_SRC
+#+begin_src emacs-lisp
+  (setq display-time-24hr-format t)
+  (display-time-mode t)
+  (size-indication-mode t)
+#+end_src
 
 Fringe settings
 
-#+BEGIN_SRC emacs-lisp
-(fringe-mode '(8 . 0))
-(setq-default indicate-empty-lines t)
-(setq-default indicate-buffer-boundaries 'left)
-#+END_SRC
+#+begin_src emacs-lisp
+  (fringe-mode '(8 . 0))
+  (setq-default indicate-empty-lines t)
+  (setq-default indicate-buffer-boundaries 'left)
+#+end_src
 
 Short messages in minibuffer.
 
-#+BEGIN_SRC emacs-lisp
-(defalias 'yes-or-no-p 'y-or-n-p)
-#+END_SRC
+#+begin_src emacs-lisp
+  (defalias 'yes-or-no-p 'y-or-n-p)
+#+end_src
 
 Highlight search results.
 
-#+BEGIN_SRC emacs-lisp
-(setq search-highlight t
-      query-replace-highlight t
-      mouse-sel-retain-highlight t)
-#+END_SRC
+#+begin_src emacs-lisp
+  (setq search-highlight t
+        query-replace-highlight t
+        mouse-sel-retain-highlight t)
+#+end_src
 
-Saving sessions
-
-#+BEGIN_SRC emacs-lisp
-(require 'desktop)
-
-(defun desktop-settings-setup ()
-  "Some settings setup for desktop-save-mode."
-  (interactive)
-
-  ;; At this point the desktop.el hook in after-init-hook was
-  ;; executed, so (desktop-read) is avoided.
-  (when (not (eq (emacs-pid) (desktop-owner))) ; Check that emacs did not load a desktop yet
-    ;; Here we activate the desktop mode
-    (desktop-save-mode 1)
-
-    ;; The default desktop is saved always
-    (setq desktop-save t)
-
-    ;; The default desktop is loaded anyway if it is locked
-    (setq desktop-load-locked-desktop t)
-
-    ;; Set the location to save/load default desktop
-    (setq desktop-dirname user-emacs-directory)
-
-    ;; Make sure that even if emacs or OS crashed, emacs
-    ;; still have last opened files.
-    (add-hook 'find-file-hook
-              (lambda ()
-                (run-with-timer 5 nil
-                                (lambda ()
-                                  ;; Reset desktop modification time so the user is not bothered
-                                  (setq desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name))))
-                                  (desktop-save user-emacs-directory)))))
-
-    ;; Read default desktop
-    (if (file-exists-p (concat desktop-dirname desktop-base-file-name))
-        (desktop-read desktop-dirname))
-
-    ;; Add a hook when emacs is closed to we reset the desktop
-    ;; modification time (in this way the user does not get a warning
-    ;; message about desktop modifications)
-    (add-hook 'kill-emacs-hook
-              (lambda ()
-                ;; Reset desktop modification time so the user is not bothered
-                (setq desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name))))))
-    )
-  )
-
-(add-hook 'after-init-hook
-          'desktop-settings-setup
-          (lambda ()
-            ;; No splash screen
-            (setq inhibit-startup-screen t)
-
-            ;; If the *scratch* buffer is the current one, then create a new
-            ;; empty untitled buffer to hide *scratch*
-            (if (string= (buffer-name) "*scratch*")
-                (new-empty-buffer))
-            )
-          t) ;; append this hook to the tail
-#+END_SRC
-
-*** Editor
+** Editor
 Russian hotkeys.
 
-#+BEGIN_SRC emacs-lisp
-(defun custom/reverse-input-method (input-method)
-  "Build the reverse mapping of single letters from INPUT-METHOD."
-  (interactive
-   (list (read-input-method-name "Use input method (default current): ")))
-  (if (and input-method (symbolp input-method))
-      (setq input-method (symbol-name input-method)))
-  (let ((current current-input-method)
-        (modifiers '(nil (control) (meta) (control meta))))
-    (when input-method
-      (activate-input-method input-method))
-    (when (and current-input-method quail-keyboard-layout)
-      (dolist (map (cdr (quail-map)))
-        (let* ((to (car map))
-               (from (quail-get-translation
-                      (cadr map) (char-to-string to) 1)))
-          (when (and (characterp from) (characterp to))
-            (dolist (mod modifiers)
-              (define-key local-function-key-map
-                (vector (append mod (list from)))
-                (vector (append mod (list to)))))))))
-    (when input-method
-      (activate-input-method current))))
+#+begin_src emacs-lisp
+  (defun custom/reverse-input-method (input-method)
+    "Build the reverse mapping of single letters from INPUT-METHOD."
+    (interactive
+     (list (read-input-method-name "Use input method (default current): ")))
+    (if (and input-method (symbolp input-method))
+        (setq input-method (symbol-name input-method)))
+    (let ((current current-input-method)
+          (modifiers '(nil (control) (meta) (control meta))))
+      (when input-method
+        (activate-input-method input-method))
+      (when (and current-input-method quail-keyboard-layout)
+        (dolist (map (cdr (quail-map)))
+          (let* ((to (car map))
+                 (from (quail-get-translation
+                        (cadr map) (char-to-string to) 1)))
+            (when (and (characterp from) (characterp to))
+              (dolist (mod modifiers)
+                (define-key local-function-key-map
+                  (vector (append mod (list from)))
+                  (vector (append mod (list to)))))))))
+      (when input-method
+        (activate-input-method current))))
 
-(custom/reverse-input-method 'russian-computer)
-#+END_SRC
+  (custom/reverse-input-method 'russian-computer)
+#+end_src
 
 Move lines up and down. Duplicate line.
 
-#+BEGIN_SRC emacs-lisp
-;; Move line up.
-(defun move-line-up ()
-  (interactive)
-  (transpose-lines 1)
-  (forward-line -2))
-(global-unset-key (kbd "C-S-<up>"))
-(global-set-key (kbd "C-S-<up>") 'move-line-up)
+#+begin_src emacs-lisp
+  ;; Move line up.
+  (defun move-line-up ()
+    (interactive)
+    (transpose-lines 1)
+    (forward-line -2))
 
-;; Move line down.
-(defun move-line-down ()
-  (interactive)
-  (forward-line 1)
-  (transpose-lines 1)
-  (forward-line -1))
-(global-unset-key (kbd "C-S-<down>"))
-(global-set-key (kbd "C-S-<down>") 'move-line-down)
+  (global-unset-key (kbd "C-S-<up>"))
+  (global-set-key (kbd "C-S-<up>") 'move-line-up)
 
-;; Duplicate line.
-(defun duplicate-line()
-  (interactive)
-  (move-beginning-of-line 1)
-  (kill-line)
-  (yank)
-  (open-line 1)
-  (forward-line 1)
-  (yank))
-(global-unset-key (kbd "C-S-d"))
-(global-set-key (kbd "C-S-d") 'duplicate-line)
-#+END_SRC
+  ;; Move line down.
+  (defun move-line-down ()
+    (interactive)
+    (forward-line 1)
+    (transpose-lines 1)
+    (forward-line -1))
+  
+  (global-unset-key (kbd "C-S-<down>"))
+  (global-set-key (kbd "C-S-<down>") 'move-line-down)
+
+  ;; Duplicate line.
+  (defun duplicate-line()
+    (interactive)
+    (move-beginning-of-line 1)
+    (kill-line)
+    (yank)
+    (open-line 1)
+    (forward-line 1)
+    (yank))
+  (global-unset-key (kbd "C-S-d"))
+  (global-set-key (kbd "C-S-d") 'duplicate-line)
+#+end_src
 
 Text scale.
 
-#+BEGIN_SRC emacs-lisp
-(global-unset-key (kbd "C--"))
-(global-set-key (kbd "C-+") 'text-scale-increase)
-(global-set-key (kbd "C--") 'text-scale-decrease)
-#+END_SRC
+#+begin_src emacs-lisp
+  (global-unset-key (kbd "C--"))
+  (global-set-key (kbd "C-+") 'text-scale-increase)
+  (global-set-key (kbd "C--") 'text-scale-decrease)
+#+end_src
 
 Easy transition between windows: M-arrow-keys
 
-#+BEGIN_SRC emacs-lisp
-(if (equal nil (equal major-mode 'org-mode))
-    (windmove-default-keybindings 'meta))
-#+END_SRC
+#+begin_src emacs-lisp
+  (if (equal nil (equal major-mode 'org-mode))
+      (windmove-default-keybindings 'meta))
+#+end_src
 
 Resize windows.
 
-#+BEGIN_SRC emacs-lisp
-(global-unset-key (kbd "M-S-<left>"))
-(global-unset-key (kbd "M-S-<right>"))
-(global-unset-key (kbd "M-S-<down>"))
-(global-unset-key (kbd "S-M-<up>"))
-(global-set-key (kbd "S-M-<left>") 'shrink-window-horizontally)
-(global-set-key (kbd "S-M-<right>") 'enlarge-window-horizontally)
-(global-set-key (kbd "S-M-<down>") 'enlarge-window)
-(global-set-key (kbd "S-M-<up>") 'shrink-window)
-#+END_SRC
+#+begin_src emacs-lisp
+  (global-unset-key (kbd "M-S-<left>"))
+  (global-unset-key (kbd "M-S-<right>"))
+  (global-unset-key (kbd "M-S-<down>"))
+  (global-unset-key (kbd "S-M-<up>"))
+  (global-set-key (kbd "S-M-<left>") 'shrink-window-horizontally)
+  (global-set-key (kbd "S-M-<right>") 'enlarge-window-horizontally)
+  (global-set-key (kbd "S-M-<down>") 'enlarge-window)
+  (global-set-key (kbd "S-M-<up>") 'shrink-window)
+#+end_src
 
 Buffers, tubs and windows.
 
-#+BEGIN_SRC emacs-lisp
-(global-unset-key (kbd "C-<next>"))
-(global-unset-key (kbd "C-<prior>"))
-(global-set-key (kbd "C-<next>") 'next-buffer)
-(global-set-key (kbd "C-<prior>") 'previous-buffer)
-#+END_SRC
+#+begin_src emacs-lisp
+  (global-unset-key (kbd "C-<next>"))
+  (global-unset-key (kbd "C-<prior>"))
+  (global-set-key (kbd "C-<next>") 'next-buffer)
+  (global-set-key (kbd "C-<prior>") 'previous-buffer)
+#+end_src
 
 Enable line numbers.
 
-#+BEGIN_SRC emacs-lisp
-(global-display-line-numbers-mode)
-#+END_SRC
+#+begin_src emacs-lisp
+  (global-display-line-numbers-mode)
+#+end_src
 
 Large file handling.
 
-#+BEGIN_SRC emacs-lisp
-(defvar custom-large-file-size 1
-  "Size (in MB) above which the user will be prompted to open the file literally
-to avoid performance issues. Opening literally means that no major or minor
-modes are active and the buffer is read-only.")
+#+begin_src emacs-lisp
+  (defvar custom-large-file-size 1
+    "Size (in MB) above which the user will be prompted to open the file literally
+  to avoid performance issues. Opening literally means that no major or minor
+  modes are active and the buffer is read-only.")
 
-(defvar custom-large-file-modes-list
-  '(archive-mode tar-mode jka-compr git-commit-mode image-mode
-    doc-view-mode doc-view-mode-maybe ebrowse-tree-mode pdf-view-mode)
-  "Major modes that `custom/check-large-file' will ignore.")
+  (defvar custom-large-file-modes-list
+    '(archive-mode tar-mode jka-compr git-commit-mode image-mode
+      doc-view-mode doc-view-mode-maybe ebrowse-tree-mode pdf-view-mode)
+    "Major modes that `custom/check-large-file' will ignore.")
 
-(defun custom/check-large-file ()
-  "Check if the buffer's file is large (see `custom-large-file-size'). If so, ask
-for confirmation to open it literally (read-only, disabled undo and in
-fundamental-mode) for performance sake."
-  (let* ((filename (buffer-file-name))
-         (size (nth 7 (file-attributes filename))))
-    (when (and (not (memq major-mode custom-large-file-modes-list))
-               size (> size (* 1024 1024 custom-large-file-size))
-               (y-or-n-p
-                (format (concat "%s is a large file, open literally to "
-                                "avoid performance issues?")
-                        (file-relative-name filename))))
-      (setq buffer-read-only t)
-      (buffer-disable-undo)
-      (fundamental-mode))))
+  (defun custom/check-large-file ()
+    "Check if the buffer's file is large (see `custom-large-file-size'). If so, ask
+  for confirmation to open it literally (read-only, disabled undo and in
+  fundamental-mode) for performance sake."
+    (let* ((filename (buffer-file-name))
+           (size (nth 7 (file-attributes filename))))
+      (when (and (not (memq major-mode custom-large-file-modes-list))
+                 size (> size (* 1024 1024 custom-large-file-size))
+                 (y-or-n-p
+                  (format (concat "%s is a large file, open literally to "
+                                  "avoid performance issues?")
+                          (file-relative-name filename))))
+        (setq buffer-read-only t)
+        (buffer-disable-undo)
+        (fundamental-mode))))
 
-(add-hook 'find-file-hook #'custom/check-large-file)
-#+END_SRC
+  (add-hook 'find-file-hook #'custom/check-large-file)
+#+end_src
 
-** IDE
+* IDE
 
-*** prog-mode
-Comments.
+** Delimiter pairs
+Auto-close delimiters and blocks as you type.
 
-#+BEGIN_SRC emacs-lisp
-(defun comment-or-uncomment-region-or-line ()
-  "Comments or uncomments the region or the current line if there's no active region."
-  (interactive)
-  (let (beg end)
-    (if (region-active-p)
-        (setq beg (save-excursion (goto-char (region-beginning)) (line-beginning-position))
-              end (save-excursion (goto-char (region-end)) (line-end-position)))
-         (setq beg (line-beginning-position)
-               end (line-end-position)))
-    (comment-or-uncomment-region beg end)))
+#+begin_src emacs-lisp
+  (use-package smartparens
+    :demand t
+    :bind (("C-M-f" . sp-forward-sexp)
+           ("C-M-b" . sp-backward-sexp)
+           ("C-M-d" . sp-down-sexp)
+           ("C-M-u" . sp-backward-up-sexp)
+           ("C-M-a" . sp-beginning-of-sexp)
+           ("C-M-e" . sp-end-of-sexp)
+           ("C-M-n" . sp-next-sexp)
+           ("C-M-p" . sp-previous-sexp)
+           ("C-M-k" . sp-kill-sexp)
+           ("C-M-w" . sp-copy-sexp)
+           ("C-M-[" . sp-backward-unwrap-sexp))
+    :config
+    (require 'smartparens-config)
 
-(defun font-lock-comment-annotations ()
-  "Highlight a bunch of well known comment annotations.
-  This functions should be added to the hooks of major modes for programming."
-  (font-lock-add-keywords
-   nil '(("\\<\\(\\(FIX\\(ME\\)?\\|TODO\\|OPTIMIZE\\|HACK\\|REFACTOR\\):\\)"
-          1 font-lock-warning-face t))))
-#+END_SRC
+    (sp-local-pair '(xml-mode nxml-mode php-mode) "<!--" "-->"
+                   :post-handlers '(("| " "SPC")))
 
-Config.
+    (sp-local-pair '(clojure-mode lisp-mode) "'" nil
+                   :actions nil)
 
-#+BEGIN_SRC emacs-lisp
-(require 'which-func)
+    ;; disable global pairing for `
+    (sp-pair "`" nil :actions :rem))
+#+end_src
 
-(defun prog-mode-config ()
-  (local-set-key (kbd "C-;") 'comment-or-uncomment-region-or-line)
-  (font-lock-comment-annotations)
-  ;; Show-paren-mode settings.
-  (setq show-paren-style 'parenthesis)
-  (show-paren-mode +1)
-  ;; Smartparens mode.
-  (smartparens-mode +1)
-  ;; Enable rainbow delimiters.
-  (rainbow-delimiters-mode +1)
-  ;; Show function defenition in modeline.
-  (setq which-func-unknown "∅")
-  (which-function-mode +1)
-  ;; Eighty Column Rule.
-  (column-enforce-mode +1))
+Easily distinguish the delimiter pairs using colors especially in lisp modes.
 
-(add-hook 'prog-mode-hook 'prog-mode-config)
-#+END_SRC
+#+begin_src emacs-lisp
+  (use-package rainbow-delimiters
+    :commands rainbow-delimiters-mode
+    :custom (rainbow-delimiters-max-face-count 3))
+#+end_src
 
-Indent settings.
+** Rule 80-columns
+Highlight text that extends beyond a 80-column.
 
-#+BEGIN_SRC emacs-lisp
-(setq-default indent-tabs-mode nil
-              tab-width 2
-              c-basic-offset 2
-              standart-indent 2)
-(add-hook 'prog-mode-hook #'electric-indent-mode)
+#+begin_src emacs-lisp
+  (use-package column-enforce-mode
+    :commands column-enforce-mode
+    :hook (prog-mode . column-enforce-mode)
+    :custom (column-enforce-comments nil))
+#+end_src
 
-(defun electric-indent-ignore-python (char)
-  "Ignore electric indentation for python-mode"
-  (if (equal major-mode 'python-mode)
-      'no-indent
-    nil))
-(add-hook 'electric-indent-functions 'electric-indent-ignore-python)
+** Treemacs
+Tree layout file explorer.
 
-(defun set-newline-and-indent ()
-  "Map the return key with `newline-and-indent'"
-  (local-set-key (kbd "RET") 'newline-and-indent))
-(add-hook 'python-mode-hook 'set-newline-and-indent)
+#+begin_src emacs-lisp
+  (use-package treemacs
+    :ensure t
+    :defer t
+    :init
+    (with-eval-after-load 'winum
+      (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+    :config
+    (progn
+      (setq treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
+            treemacs-deferred-git-apply-delay        0.5
+            treemacs-directory-name-transformer      #'identity
+            treemacs-display-in-side-window          t
+            treemacs-eldoc-display                   'simple
+            treemacs-file-event-delay                2000
+            treemacs-file-extension-regex            treemacs-last-period-regex-value
+            treemacs-file-follow-delay               0.2
+            treemacs-file-name-transformer           #'identity
+            treemacs-follow-after-init               t
+            treemacs-expand-after-init               t
+            treemacs-find-workspace-method           'find-for-file-or-pick-first
+            treemacs-git-command-pipe                ""
+            treemacs-goto-tag-strategy               'refetch-index
+            treemacs-header-scroll-indicators        '(nil . "^^^^^^")
+            treemacs-hide-dot-git-directory          t
+            treemacs-indentation                     2
+            treemacs-indentation-string              " "
+            treemacs-is-never-other-window           nil
+            treemacs-max-git-entries                 5000
+            treemacs-missing-project-action          'ask
+            treemacs-move-forward-on-expand          nil
+            treemacs-no-png-images                   nil
+            treemacs-no-delete-other-windows         t
+            treemacs-project-follow-cleanup          nil
+            treemacs-persist-file                    (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+            treemacs-position                        'left
+            treemacs-read-string-input               'from-child-frame
+            treemacs-recenter-distance               0.1
+            treemacs-recenter-after-file-follow      nil
+            treemacs-recenter-after-tag-follow       nil
+            treemacs-recenter-after-project-jump     'always
+            treemacs-recenter-after-project-expand   'on-distance
+            treemacs-litter-directories              '("/node_modules" "/.venv" "/.cask")
+            treemacs-show-cursor                     nil
+            treemacs-show-hidden-files               t
+            treemacs-silent-filewatch                nil
+            treemacs-silent-refresh                  nil
+            treemacs-sorting                         'alphabetic-asc
+            treemacs-select-when-already-in-treemacs 'move-back
+            treemacs-space-between-root-nodes        t
+            treemacs-tag-follow-cleanup              t
+            treemacs-tag-follow-delay                1.5
+            treemacs-text-scale                      nil
+            treemacs-user-mode-line-format           nil
+            treemacs-user-header-line-format         nil
+            treemacs-wide-toggle-width               70
+            treemacs-width                           35
+            treemacs-width-increment                 1
+            treemacs-width-is-initially-locked       t
+            treemacs-workspace-switch-cleanup        nil)
 
-(dolist (command '(yank yank-pop))
-  (eval `(defadvice ,command (after indent-region activate)
-           (and (not current-prefix-arg)
-                (member major-mode '(emacs-lisp-mode lisp-mode
-                                                     clojure-mode    scheme-mode
-                                                     haskell-mode    ruby-mode
-                                                     rspec-mode      python-mode
-                                                     c-mode          c++-mode
-                                                     objc-mode       latex-mode
-                                                     plain-tex-mode))
-                (let ((mark-even-if-inactive transient-mark-mode))
-                  (indent-region (region-beginning) (region-end) nil))))))
-#+END_SRC
+      ;; The default width and height of the icons is 22 pixels. If you are
+      ;; using a Hi-DPI display, uncomment this to double the icon size.
+      ;;(treemacs-resize-icons 44)
 
-Jump to code
+      (treemacs-follow-mode t)
+      (treemacs-filewatch-mode t)
+      (treemacs-fringe-indicator-mode 'always)
+      ;(when treemacs-python-executable
+      ;  (treemacs-git-commit-diff-mode t))
 
-#+BEGIN_SRC emacs-lisp
-(use-package dumb-jump
-  :commands (dumb-jump-go dumb-jump-back)
-  :bind (("C-M-." . dumb-jump-go)
-         ("C-M-," . dumb-jump-back)))
-#+END_SRC
+      (pcase (cons (not (null (executable-find "git")))
+                   (not (null treemacs-python-executable)))
+        (`(t . t)
+         (treemacs-git-mode 'deferred))
+        (`(t . _)
+         (treemacs-git-mode 'simple)))
 
-*** Clojure
+      (treemacs-hide-gitignored-files-mode nil))
+    :bind
+    (:map global-map
+          ("<f8>"      . treemacs)
+          ("M-0"       . treemacs-select-window)
+          ("C-x t 1"   . treemacs-delete-other-windows)
+          ("C-x t t"   . treemacs)
+          ("C-x t d"   . treemacs-select-directory)
+          ("C-x t B"   . treemacs-bookmark)
+          ("C-x t C-t" . treemacs-find-file)
+          ("C-x t M-t" . treemacs-find-tag)))
 
-#+BEGIN_SRC emacs-lisp
-(use-package clojure-mode
-  :mode "\\.clj$"
-  :mode "\\.cljs$")
+  (use-package treemacs-projectile
+    :after (treemacs projectile)
+    :ensure t)
 
-(use-package cider
-  :commands (cider-jack-in cider-mode)
-  :bind (("C-c C-j" . cider-jack-in)
-         ("C-c C-q" . cider-quit)
-         ("C-c M-c" . cider-connect)
-         ("C-x C-e" . cider-eval-last-expr)
-         ("C-x C-f" . cider-eval-defun-at-point)
-         ("C-x M-s" . cider-switch-to-repl-buffer)
-         ("C-x M-b" . cider-send-ns-to-repl)
-         ("M-." . cider-find-var))
-  :config
-  (setq nrepl-hide-special-buffers t
-        cider-repl-use-pretty-printing t   ; nice pretty printing
-        cider-repl-use-clojure-font-lock t ; nicer font lock in REPL
-        cider-repl-result-prefix ";; => "  ; result prefix for the REPL
-        cider-repl-wrap-history t          ; never ending REPL history
-        cider-repl-history-size 3000       ; looong history
-        cider-show-error-buffer nil        ; error buffer not popping up
-        )
+  (use-package treemacs-magit
+    :after (treemacs magit)
+    :ensure t)
 
-  ;; Hooks
-  (add-hook 'cider-mode-hook #'eldoc-mode)        ; eldoc for clojure
-  (add-hook 'clojure-mode-hook #'subword-mode)    ; CamelCase support
-  ; (add-hook 'cider-repl-mode-hook #'company-mode) ; company mode for completion
-  ; (add-hook 'cider-mode-hook #'company-mode)
-  (add-hook 'cider-repl-mode-hook 'turn-on-smartparens-strict-mode) ; smartparens
-  (add-hook 'cider-mode-hook 'turn-on-smartparens-strict-mode)
-  (add-hook 'clojure-mode-hook 'turn-on-smartparens-strict-mode))
-#+END_SRC
+  (use-package treemacs-persp
+    :after (treemacs persp-mode)
+    :ensure t
+    :config (treemacs-set-scope-type 'Perspectives))
+#+end_src
 
-*** Python
+** Git
 
-#+BEGIN_SRC emacs-lisp
-#+END_SRC
+#+begin_src emacs-lisp
+  (use-package git-modes :defer t)
 
-** Post Initialization
+  (use-package magit
+    :custom
+    (magit-clone-default-directory (expand-file-name "~/reps/"))
+    (magit-completing-read-function 'ivy-completing-read "Force Ivy usage.")
+    :bind
+    (:map mode-specific-map
+          :prefix-map magit-prefix-map
+          :prefix "m"
+          (("a" . magit-stage-file) ; the closest analog to git add
+           ("b" . magit-blame)
+           ("B" . magit-branch)
+           ("c" . magit-checkout)
+           ("C" . magit-commit)
+           ("d" . magit-diff)
+           ("D" . magit-discard)
+           ("f" . magit-fetch)
+           ("g" . vc-git-grep)
+           ("G" . magit-gitignore)
+           ("i" . magit-init)
+           ("l" . magit-log)
+           ("m" . magit)
+           ("M" . magit-merge)
+           ("n" . magit-notes-edit)
+           ("p" . magit-pull-branch)
+           ("P" . magit-push-current)
+           ("r" . magit-reset)
+           ("R" . magit-rebase)
+           ("s" . magit-status)
+           ("S" . magit-stash)
+           ("t" . magit-tag)
+           ("T" . magit-tag-delete)
+           ("u" . magit-unstage)
+           ("U" . magit-update-index))))
+
+  (use-package forge
+    :defer t
+    :after magit)
+
+  (use-package git-timemachine :defer t)
+
+  (use-package diff-hl
+    :hook
+    ((magit-post-refresh . diff-hl-magit-post-refresh)
+     (prog-mode . diff-hl-mode)
+     (org-mode . diff-hl-mode)
+     (dired-mode . diff-hl-dired-mode)))
+
+  (use-package magit-popup)
+#+end_src
+
+** Projectile
+Projectile is a quick and easy project management package.
+
+#+begin_src emacs-lisp
+  (use-package projectile
+    :ensure t
+    :bind
+    (("C-c k" . #'projectile-kill-buffers)
+     ("C-c M" . #'projectile-compile-project)
+     (:map mode-specific-map ("p" . projectile-command-map)))
+    :init
+    (setq projectile-indexing-method 'alien
+          projectile-globally-ignored-file-suffixes '(".elc" ".pyc" ".o" ".class"))
+    :custom
+    (projectile-project-root-files-functions
+     '(projectile-root-local
+       projectile-root-top-down
+       projectile-root-bottom-up
+       projectile-root-top-down-recurring))
+    (projectile-completion-system 'ivy))
+
+  (defun +ivy-projectile-find-file-transformer (str)
+    "Highlight entries that have been visited. This is the opposite
+    of `counsel-projectile-find-file'."
+    (cond ((get-file-buffer (projectile-expand-root str))
+           (propertize str 'face '(:weight ultra-bold :slant italic)))
+          (t str)))
+
+  (use-package counsel-projectile
+    :commands (counsel-projectile-find-file counsel-projectile-find-dir
+               counsel-projectile-switch-to-buffer counsel-projectile-grep
+               counsel-projectile-ag counsel-projectile-switch-project)
+    :after counsel projectile
+    :bind
+    (([remap projectile-find-file] . counsel-projectile-find-file)
+     ([remap projectile-find-dir] . counsel-projectile-find-dir)
+     ([remap projectile-switch-to-buffer] . counsel-projectile-switch-to-buffer)
+     ([remap projectile-grep] . counsel-projectile-grep)
+     ([remap projectile-ag] . counsel-projectile-ag)
+     ([remap projectile-switch-project] . counsel-projectile-switch-project))
+    ("C-S-SPC" . counsel-projectile-switch-project)
+    :config
+    (ivy-configure #'counsel-projectile-find-file
+      :display-transformer-fn #'+ivy-projectile-find-file-transformer)
+    (counsel-projectile-mode))
+#+end_src
+
+** persp-mode
+Allows for creation of isolated workspaces
+
+#+begin_src emacs-lisp
+  (defvar +workspaces-last-persp nil
+    "A variable that contains the last accessed perspective")
+
+  (defun +workspace-exists-p (name)
+    "Returns t if NAME is the name of an existing workspace."
+    (when (symbolp name)
+      (setq name (symbol-name name)))
+    (unless (stringp name)
+      (error "Expected a string, got a %s" (type-of name)))
+    (member name (persp-names-current-frame-fast-ordered)))
+
+  (defun +workspace-switch-last ()
+    "Switches to the last workspace"
+    (interactive)
+    (if (+workspace-exists-p +workspaces-last-persp)
+        (persp-switch +workspaces-last-persp)
+      (error "No previous workspace.")))
+
+  (defun +workspace-switch-project ()
+    (interactive)
+    (ivy-read "Switch to Project Perspective: "
+              (if (projectile-project-p)
+                  (cons (abbreviate-file-name (projectile-project-root))
+                        (projectile-relevant-known-projects))
+                projectile-known-projects)
+              :action (lambda (project)
+                        (persp-switch project)
+                        (let ((projectile-completion-system 'ivy))
+                          (projectile-switch-project-by-name project)))))
+
+  (use-package persp-mode
+    :demand t
+    :config
+    (setq wg-morph-on nil
+          persp-autokill-buffer-on-remove 'kill-weak
+          persp-nil-name "nil"
+          persp-nil-hidden t
+          persp-auto-save-fname "autosave"
+          persp-auto-resume-time 1
+          persp-auto-save-opt 1)
+
+    (defun +workspaces*track-last-persp (switch-fun &rest args)
+      (let ((before-persp (safe-persp-name (get-current-persp)))
+            (after-persp (apply switch-fun args)))
+        (when (not (string= before-persp after-persp))
+          (setq +workspaces-last-persp before-persp))))
+
+    (advice-add #'persp-switch :around #'+workspaces*track-last-persp)
+
+    (persp-mode 1))
+
+  (use-package persp-mode-projectile-bridge
+    :config
+    (add-hook 'persp-mode-projectile-bridge-mode-hook
+              #'(lambda ()
+                  (if persp-mode-projectile-bridge-mode
+                      (persp-mode-projectile-bridge-find-perspectives-for-all-buffers)
+                    (persp-mode-projectile-bridge-kill-perspectives))))
+    (persp-mode-projectile-bridge-mode 1))
+#+end_src
+
+** prog-mode
+Default settings for programming modes.
+
+*** Comments
+
+#+begin_src emacs-lisp
+  (defun comment-or-uncomment-region-or-line ()
+    "Comments or uncomments the region or
+     the current line if there's no active region."
+    (interactive)
+    (let (beg end)
+      (if (region-active-p)
+          (setq beg (save-excursion (goto-char (region-beginning)) (line-beginning-position))
+                end (save-excursion (goto-char (region-end)) (line-end-position)))
+           (setq beg (line-beginning-position)
+                 end (line-end-position)))
+      (comment-or-uncomment-region beg end)))
+
+  (defun font-lock-comment-annotations ()
+    "Highlight a bunch of well known comment annotations.
+    This functions should be added to the hooks of major modes for programming."
+    (font-lock-add-keywords
+     nil '(("\\<\\(\\(FIX\\(ME\\)?\\|TODO\\|OPTIMIZE\\|HACK\\|REFACTOR\\):\\)"
+            1 font-lock-warning-face t))))
+#+end_src
+
+*** Config
+
+#+begin_src emacs-lisp
+  (require 'which-func)
+
+  (defun prog-mode-config ()
+    (local-set-key (kbd "C-;") 'comment-or-uncomment-region-or-line)
+    (font-lock-comment-annotations)
+    ;; Show-paren-mode settings.
+    (setq show-paren-style 'parenthesis)
+    (show-paren-mode +1)
+    ;; Smartparens mode.
+    (smartparens-mode +1)
+    ;; Enable rainbow delimiters.
+    (rainbow-delimiters-mode +1)
+    ;; Show function defenition in modeline.
+    (setq which-func-unknown "∅")
+    (which-function-mode +1)
+    ;; Eighty Column Rule.
+    (column-enforce-mode +1))
+
+  (add-hook 'prog-mode-hook 'prog-mode-config)
+#+end_src
+
+*** Indent settings
+
+#+begin_src emacs-lisp
+  (setq-default indent-tabs-mode nil
+                tab-width 2
+                c-basic-offset 2
+                standart-indent 2)
+  (add-hook 'prog-mode-hook #'electric-indent-mode)
+
+  (dolist (command '(yank yank-pop))
+    (eval `(defadvice ,command (after indent-region activate)
+             (and (not current-prefix-arg)
+                  (member major-mode '(emacs-lisp-mode lisp-mode
+                                                       clojure-mode    scheme-mode
+                                                       haskell-mode    ruby-mode
+                                                       rspec-mode      python-mode
+                                                       c-mode          c++-mode
+                                                       objc-mode       latex-mode
+                                                       plain-tex-mode))
+                  (let ((mark-even-if-inactive transient-mark-mode))
+                    (indent-region (region-beginning) (region-end) nil))))))
+#+end_src
+
+*** Jump to code
+Backup jump to definition functionality with ripgrep (I like this better than ag) backend.
+Other tools, such as CIDER or lsp-based, in the xref list take precedence.
+
+#+begin_src emacs-lisp
+  (use-package dumb-jump
+    :init
+    (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+    (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+    :custom
+    (dumb-jump-selector 'ivy))
+#+end_src
+
+*** Autocompletion framework
+
+#+begin_src emacs-lisp
+  (use-package company
+    :bind
+    (:map company-active-map
+          ("C-n" . company-select-next-or-abort)
+          ("C-p" . company-select-previous-or-abort))
+    :hook
+    (after-init . global-company-mode))
+
+  (use-package company-quickhelp
+    :defer t
+    :custom
+    (company-quickhelp-delay 3)
+    (company-quickhelp-mode 1))
+#+end_src
+
+*** Checking and linting
+
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :hook
+    (prog-mode . flycheck-mode))
+#+end_src
+
+*** Execute code
+
+#+begin_src emacs-lisp
+  (use-package quickrun
+    :bind ("C-c r" . quickrun))
+#+end_src
+
+
+** LSP and DAP
+
+Enable Language Server Protocol.
+
+#+begin_src emacs-lisp
+  (use-package lsp-mode
+    :init
+    (setq lsp-keymap-prefix "C-c l"
+          read-process-output-max (* 1024 1024))  ; 1 mb
+    :hook ((clojure-mode . lsp-deferred)
+           (clojurescript-mode . lsp-deferred)
+           (clojurec-mode . lsp-deferred)
+           (erlang-mode . lsp-deferred)
+           (python-mode . lsp-deferred)
+           (lsp-mode . lsp-enable-which-key-integration))
+    :commands (lsp lsp-deferred))
+
+  (use-package lsp-ui
+    :ensure t
+    :commands lsp-ui-mode)
+
+  (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+
+  (use-package lsp-treemacs
+    :after (lsp-mode treemacs))
+#+end_src
+
+Enable Debug Adapter Protocol.
+
+#+begin_src emacs-lisp
+  (use-package dap-mode
+    :after lsp-mode
+    :config (dap-auto-configure-mode))
+#+end_src
+
+** JAVA
+
+#+begin_src emacs-lisp
+  (use-package lsp-java
+    :hook (java-mode . lsp-deferred))
+#+end_src
+
+** Clojure
+
+#+begin_src emacs-lisp
+  (use-package clojure-mode
+    :mode "\\.clj$"
+    :mode "\\.cljs$")
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package cider
+    :commands (cider-jack-in cider-mode)
+    :bind (("C-c C-j" . cider-jack-in)
+           ("C-c C-q" . cider-quit)
+           ("C-c M-c" . cider-connect)
+           ("C-x C-e" . cider-eval-last-expr)
+           ("C-x M-e" . cider-eval-defun-up-to-point)
+           ("C-x M-s" . cider-switch-to-repl-buffer)
+           ("C-x M-b" . cider-send-ns-to-repl))
+    :config
+    (setq nrepl-hide-special-buffers t
+          cider-repl-use-pretty-printing t            ; nice pretty printing
+          cider-repl-use-clojure-font-lock t          ; nicer font lock in REPL
+          cider-repl-result-prefix ";; => "           ; result prefix for the REPL
+          cider-repl-wrap-history t                   ; never ending REPL history
+          cider-repl-history-size 3000                ; looong history
+          cider-show-error-buffer nil                 ; error buffer not popping up
+          cider-eldoc-display-for-symbol-at-point nil ; use lsp-mode showing eldoc during symbol at point
+          )
+    :hook
+    ((cider-mode . eldoc-mode) ; eldoc for clojure
+     (clojure-mode . subword-mode) ; CamelCase support
+     (cider-repl-mode . company-mode) ; company mode for completion
+     (cider-mode . company-mode)
+     (cider-repl-mode . turn-on-smartparens-strict-mode) ; smartparens
+     (cider-mode . turn-on-smartparens-strict-mode)
+     (clojure-mode . turn-on-smartparens-strict-mode)))
+#+end_src
+
+** Erlang
+
+#+begin_src emacs-lisp
+  (use-package erlang
+    :defer t
+    :config
+    (require 'erlang-start))
+
+  (use-package company-erlang
+    :hook
+    (erlang-mode #'company-erlang-init))
+#+end_src
+
+** Data serialization
+
+*** JSON
+
+#+begin_src emacs-lisp
+  (use-package json-mode
+    ;:straight t
+    :mode "\\.json\\'"
+    :config
+    (add-hook 'json-mode #'smartparens-mode))
+#+end_src
+
+*** YAML
+
+#+begin_src emacs-lisp
+  (use-package yaml-mode
+    ;:straight t
+    :mode "\\.yml\\'"
+    :config
+    (add-hook 'yaml-mode-hook 'smartparens-mode)
+    ;(add-hook 'yaml-mode-hook 'highlight-indent-guides-mode)
+    (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
+#+end_src
+
+*** CSV
+
+#+begin_src emacs-lisp
+  (use-package csv-mode
+    :ensure t
+    :mode
+    (("\\.[Cc][Ss][Vv]\\'" . csv-mode)))
+#+end_src
+
+** Markup
+
+#+begin_src emacs-lisp
+  (use-package markdown-mode
+    :ensure t
+    :ensure-system-package markdown
+    :mode (("\\`README\\.md\\'" . gfm-mode)
+           ("\\.md\\'"          . markdown-mode)
+           ("\\.markdown\\'"    . markdown-mode))
+    :custom
+    (markdown-fontify-code-blocks-natively t)
+    (markdown-command "markdown"))
+#+end_src
+
+** Testing an API
+
+#+begin_src emacs-lisp
+  (use-package restclient
+    :ensure t
+    :mode (("\\.http\\'" . restclient-mode)))
+#+end_src
+
+Provides org-babel support for restclient
+#+begin_src emacs-lisp
+  (use-package ob-restclient
+    :ensure t
+    :after restclient org)
+#+end_src
+
+* Post Initialization
 Let's lower our GC thresholds back down to a sane level.
 
-#+BEGIN_SRC emacs-lisp
-(setq gc-cons-threshold 16777216
-      gc-cons-percentage 0.1)
-#+END_SRC
+#+begin_src emacs-lisp
+  (setq gc-cons-threshold (* 100 1024 1024) ; needs for lsp
+        gc-cons-percentage 0.1)
+#+end_src

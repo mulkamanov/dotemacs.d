@@ -32,6 +32,7 @@
   - [[#persp-mode][persp-mode]]
   - [[#prog-mode][prog-mode]]
   - [[#lsp-and-dap][LSP and DAP]]
+  - [[#tree-sitter-support][Tree-sitter support]]
   - [[#java][JAVA]]
   - [[#clojure][Clojure]]
   - [[#erlang][Erlang]]
@@ -1038,6 +1039,33 @@ Enable Debug Adapter Protocol.
     :config (dap-auto-configure-mode))
 #+end_src
 
+** Tree-sitter support
+Install multilanguage support using this tutorial
+https://cgit.git.savannah.gnu.org/cgit/emacs.git/tree/admin/notes/tree-sitter/starter-guide?h=emacs-29
+
+#+begin_src emacs-lisp
+  (use-package treesit
+    :ensure nil
+    :when (and (fboundp 'treesit-available-p)
+               (treesit-available-p))
+    :custom (major-mode-remap-alist
+             '((c-mode . c-ts-mode)
+               (c++-mode . c++-ts-mode)
+               (csharp-mode . csharp-ts-mode)
+               (conf-toml-mode . toml-ts-mode)
+               (javascript-mode . js-ts-mode)
+               (js-json-mode . json-ts-mode)
+               (html-mode . html-ts-mode)
+               (kotlin-mode . kotlin-ts-mode)
+               (perl-mode . perl-ts-mode)
+               (php-mode . php-ts-mode)
+               (python-mode . python-ts-mode)
+               (ruby-mode . ruby-ts-mode)
+               (scala-mode . scala-ts-mode)
+               (typescript-mode . typescript-ts-mode)
+               (sh-mode . bash-ts-mode))))
+#+end_src
+
 ** JAVA
 
 #+begin_src emacs-lisp
@@ -1097,6 +1125,7 @@ Enable Debug Adapter Protocol.
 #+end_src
 
 ** Data serialization
+Maybe we should ditch this block in favor of treesitter...
 
 *** JSON
 
@@ -1114,9 +1143,8 @@ Enable Debug Adapter Protocol.
   (use-package yaml-mode
     ;:straight t
     :mode "\\.yml\\'"
+    :hook (yaml-mode . smartparens-mode)
     :config
-    (add-hook 'yaml-mode-hook 'smartparens-mode)
-    ;(add-hook 'yaml-mode-hook 'highlight-indent-guides-mode)
     (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
 #+end_src
 

@@ -37,7 +37,6 @@
   - [[#clojure][Clojure]]
   - [[#erlang][Erlang]]
   - [[#data-serialization][Data serialization]]
-  - [[#markup][Markup]]
   - [[#testing-an-api][Testing an API]]
 - [[#post-initialization][Post Initialization]]
 
@@ -875,6 +874,7 @@ Allows for creation of isolated workspaces
     (persp-mode 1))
 
   (use-package persp-mode-projectile-bridge
+    :after (persp-mode projectile)
     :config
     (add-hook 'persp-mode-projectile-bridge-mode-hook
               #'(lambda ()
@@ -1063,7 +1063,9 @@ https://cgit.git.savannah.gnu.org/cgit/emacs.git/tree/admin/notes/tree-sitter/st
                (ruby-mode . ruby-ts-mode)
                (scala-mode . scala-ts-mode)
                (typescript-mode . typescript-ts-mode)
-               (sh-mode . bash-ts-mode))))
+               (sh-mode . bash-ts-mode)))
+    :config
+    (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode)))
 #+end_src
 
 ** JAVA
@@ -1155,20 +1157,6 @@ Maybe we should ditch this block in favor of treesitter...
     :ensure t
     :mode
     (("\\.[Cc][Ss][Vv]\\'" . csv-mode)))
-#+end_src
-
-** Markup
-
-#+begin_src emacs-lisp
-  (use-package markdown-mode
-    :ensure t
-    :ensure-system-package markdown
-    :mode (("\\`README\\.md\\'" . gfm-mode)
-           ("\\.md\\'"          . markdown-mode)
-           ("\\.markdown\\'"    . markdown-mode))
-    :custom
-    (markdown-fontify-code-blocks-natively t)
-    (markdown-command "markdown"))
 #+end_src
 
 ** Testing an API

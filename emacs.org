@@ -559,6 +559,33 @@ Large file handling.
   (add-hook 'find-file-hook #'custom/check-large-file)
 #+end_src
 
+*** Show keybindings
+Dynamicaly show keybinding options.
+
+#+begin_src emacs-lisp
+  (use-package which-key
+    :demand t
+    :config
+    (setq which-key-sort-order #'which-key-prefix-then-key-order
+          which-key-sort-uppercase-first nil
+          which-key-add-column-padding 1
+          which-key-max-display-columns nil
+          which-key-min-display-lines 5)
+    ;; embolden local bindings
+    (set-face-attribute 'which-key-local-map-description-face nil :weight 'bold)
+    (which-key-setup-side-window-bottom)
+    (which-key-mode))
+#+end_src
+
+*** Search engine
+Use ripgrep as a fast alternative to grep.
+
+#+begin_src emacs-lisp
+  (use-package rg
+    :config
+    (global-set-key (kbd "C-c s") #'rg-menu))
+#+end_src
+
 * IDE
 
 ** Delimiter pairs
@@ -777,18 +804,18 @@ Projectile is a quick and easy project management package.
 #+begin_src emacs-lisp
   (use-package projectile
     :ensure t
-    :bind
-    (("C-c k" . #'projectile-kill-buffers)
-     ("C-c M" . #'projectile-compile-project)
-     (:map mode-specific-map ("p" . projectile-command-map)))
     :init
     (setq projectile-indexing-method 'alien
-          projectile-globally-ignored-file-suffixes '(".elc" ".pyc" ".o" ".class"))
+          projectile-globally-ignored-file-suffixes '(".elc" ".pyc" ".o" ".class" ".beam"))
+    :config
+    (define-key projectile-mode-map (kbd "C-c C-p") 'projectile-command-map)
+    (global-set-key (kbd "C-c p") 'projectile-command-map)
     :custom
     (projectile-project-root-files-functions
      '(projectile-root-local
-       projectile-root-top-down
+       projectile-root-marked
        projectile-root-bottom-up
+       projectile-root-top-down
        projectile-root-top-down-recurring))
     (projectile-completion-system 'ivy))
 
@@ -800,7 +827,8 @@ Projectile is a quick and easy project management package.
           (t str)))
 
   (use-package counsel-projectile
-    :commands (counsel-projectile-find-file counsel-projectile-find-dir
+    :commands (counsel-projectile-find-file
+               counsel-projectile-find-dir
                counsel-projectile-switch-to-buffer counsel-projectile-grep
                counsel-projectile-ag counsel-projectile-switch-project)
     :after counsel projectile
@@ -1008,7 +1036,7 @@ Other tools, such as CIDER or lsp-based, in the xref list take precedence.
 
 Enable Language Server Protocol.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package lsp-mode
     :init
     (setq lsp-keymap-prefix "C-c l"
@@ -1033,7 +1061,7 @@ Enable Language Server Protocol.
 
 Enable Debug Adapter Protocol.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package dap-mode
     :after lsp-mode
     :config (dap-auto-configure-mode))

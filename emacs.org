@@ -579,11 +579,17 @@ Dynamicaly show keybinding options.
 
 *** Search engine
 Use ripgrep as a fast alternative to grep.
+Create a custom directory search in the style of Sublime Text.
 
 #+begin_src emacs-lisp
   (use-package rg
     :config
-    (global-set-key (kbd "C-c s") #'rg-menu))
+    (global-set-key (kbd "C-c s") #'rg-menu)
+    (rg-define-search rg-quick
+      :dir "current"
+      :files "*"
+      :flags ("-C 3")
+      :menu ("Custom" "q" "Quick search by directory")))
 #+end_src
 
 * IDE

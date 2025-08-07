@@ -583,12 +583,13 @@ Create a custom directory search in the style of Sublime Text.
 
 #+begin_src emacs-lisp
   (use-package rg
+    :bind ("C-S-s" . rg-quick)
     :config
     (global-set-key (kbd "C-c s") #'rg-menu)
     (rg-define-search rg-quick
       :dir "current"
       :files "*"
-      :flags ("-C 3")
+      :flags ("-C 3" "-i")
       :menu ("Custom" "q" "Quick search by directory")))
 #+end_src
 
